@@ -1,0 +1,10 @@
+# General
+.DS_Store
+Thumbs.db
+*.log
+
+# Node / Rust / Go (future)
+node_modules/
+target/
+dist/
+build/
