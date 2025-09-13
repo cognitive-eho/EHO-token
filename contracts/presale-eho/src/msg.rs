@@ -1,49 +1,76 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::Uint128;
 
+// Helper struct for instantiation
+#[cw_serde]
+pub struct Rate {
+    pub denom: String,
+    pub rate: Uint128, // The value of 1 full token in USDC, with 6 decimals
+}
+
 #[cw_serde]
 pub struct InstantiateMsg {
     pub admin: String,
     pub eho_token_address: String,
-    pub usdc_token_address: String,
-    pub exchange_rate: Uint128,
+    pub accepted_rates: Vec<Rate>,
     pub start_time: u64,
     pub end_time: u64,
     pub soft_cap: Uint128,
     pub hard_cap: Uint128,
+    pub max_contribution_per_user: Uint128,
+    pub eho_price: Uint128,
 }
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    // Starts the sale. Can only be called by the admin.
-    StartSale {},
-    // Allows a whitelisted user to buy tokens. This would be called via a CW20 Send message from the USDC contract.
-    Receive(cw20::Cw20ReceiveMsg),
-    // Allows a user to claim their EHO tokens after a successful sale.
+    /// Allows a whitelisted user to buy tokens by sending accepted native tokens with the message.
+    Buy {},
+    /// Allows a user to claim their EHO tokens after a successful sale.
     ClaimTokens {},
-    // Allows a user to request a refund if the sale failed.
+    /// Allows a user to request a refund if the sale failed.
     RequestRefund {},
-    
+
     // --- Admin Functions ---
-    // Adds a list of addresses to the whitelist.
-    AddToWhitelist { addresses: Vec<String> },
-    // Withdraws the raised USDC to the treasury after a successful sale.
+    EndSale {},
+    AddToWhitelist {
+        addresses: Vec<String>,
+    },
+    RemoveFromWhitelist {
+        addresses: Vec<String>,
+    },
+    ReclaimUnsoldTokens {},
     WithdrawFunds {},
+    UpdateAdmin {
+        new_admin: String,
+    },
+    UpdatePause {
+        pause: bool,
+    },
 }
 
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    // Returns the contract's configuration.
+    /// Returns the contract's immutable configuration.
     #[returns(crate::state::Config)]
     Config {},
-    // Returns the contract's current state (amount raised, status).
+    /// Returns the contract's current dynamic state.
     #[returns(crate::state::State)]
     State {},
-    // Checks if a given address is whitelisted.
+    /// Returns the exchange rates for all accepted tokens.
+    #[returns(Vec<Rate>)]
+    AcceptedRates {},
+    /// Checks if a given address is whitelisted.
     #[returns(bool)]
     IsWhitelisted { address: String },
-    // Returns the amount of USDC a specific user has contributed.
+    /// Returns the total USDC-equivalent value a user has contributed.
     #[returns(Uint128)]
-    ContributionOf { address: String },
+    TotalContributionOf { address: String },
+    /// Returns the specific coins a user has contributed.
+    #[returns(Vec<cosmwasm_std::Coin>)]
+    ContributionsOf { address: String },
+    /// Calculates and returns the amount of EHO a user is entitled to claim
+    /// based on their current contribution. Returns 0 if they haven't contributed.
+    #[returns(cosmwasm_std::Uint128)]
+    EhoAllocationOf { address: String },
 }
