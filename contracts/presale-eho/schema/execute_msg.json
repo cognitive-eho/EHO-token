@@ -108,6 +108,19 @@
     {
       "type": "object",
       "required": [
+        "reclaim_unsold_tokens"
+      ],
+      "properties": {
+        "reclaim_unsold_tokens": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
         "withdraw_funds"
       ],
       "properties": {

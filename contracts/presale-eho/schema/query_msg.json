@@ -109,6 +109,28 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "description": "Calculates and returns the amount of EHO a user is entitled to claim based on their current contribution. Returns 0 if they haven't contributed.",
+      "type": "object",
+      "required": [
+        "eho_allocation_of"
+      ],
+      "properties": {
+        "eho_allocation_of": {
+          "type": "object",
+          "required": [
+            "address"
+          ],
+          "properties": {
+            "address": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   ]
 }
