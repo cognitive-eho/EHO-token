@@ -74,3 +74,8 @@ pub enum QueryMsg {
     #[returns(cosmwasm_std::Uint128)]
     EhoAllocationOf { address: String },
 }
+
+#[cw_serde]
+pub enum MigrateMsg {
+    MinimalUpgrade {},
+}
