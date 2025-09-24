@@ -4,11 +4,11 @@ use cosmwasm_std::{
     to_json_binary, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Order,
     Response, StdResult, Uint128, WasmMsg,
 };
-use cw2::set_contract_version;
+use cw2::{ensure_from_older_version, set_contract_version};
 use cw20::Cw20ExecuteMsg;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, Rate};
+use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, Rate};
 use crate::state::{
     Config, SaleStatus, State, CONFIG, CONTRIBUTIONS, EXCHANGE_RATES, STATE, WHITELIST,
 };
@@ -140,9 +140,9 @@ pub fn execute_buy(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Respons
     }
 
     let user_addr = &info.sender;
-    if !WHITELIST.load(deps.storage, user_addr).unwrap_or(false) {
-        return Err(ContractError::NotInWhitelist {});
-    }
+    // if !WHITELIST.load(deps.storage, user_addr).unwrap_or(false) {
+    //     return Err(ContractError::NotInWhitelist {});
+    // }
 
     let total_user_usdc_value = get_total_usdc_value(deps.as_ref(), user_addr)?;
     if total_user_usdc_value + usdc_value > config.max_contribution_per_user {
@@ -464,4 +464,15 @@ fn get_total_usdc_value(deps: Deps, user: &cosmwasm_std::Addr) -> StdResult<Uint
         total_value += value;
     }
     Ok(total_value)
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(deps: DepsMut, _env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
+    ensure_from_older_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+    match msg {
+        MigrateMsg::MinimalUpgrade {} => {}
+    }
+    Ok(Response::new()
+        .add_attribute("action", "migrate_to_open_access")
+        .add_attribute("new_version", CONTRACT_VERSION))
 }
